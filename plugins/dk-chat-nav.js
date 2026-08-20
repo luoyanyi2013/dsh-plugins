@@ -1,6 +1,4 @@
-// DK 对话导航 —— DeepSeek Harness 动态插件（浏览器半）
-// 功能：右侧滚轮（按组导航）+ 向上翻一组按钮 + 顶部问题悬浮窗
-// 用法：在 Harness 中用 cordis_define 的 code.client 加载本函数体，然后 cordis_run
+// DK 瀵硅瘽瀵艰埅 鈥斺€?DeepSeek Harness 鍔ㄦ€佹彃浠讹紙娴忚鍣ㄥ崐锛?// 鍔熻兘锛氬彸渚ф粴杞紙鎸夌粍瀵艰埅锛? 鍚戜笂缈讳竴缁勬寜閽?+ 椤堕儴闂鎮诞绐楋紙AI 鍥炵瓟涓嵆鏄剧ず锛?// 鐢ㄦ硶锛氬湪 Harness 涓敤 cordis_define 鐨?code.client 鍔犺浇鏈嚱鏁颁綋锛岀劧鍚?cordis_run
 
 return {
   inject: ['timer'],
@@ -87,7 +85,7 @@ return {
       }
       .dk-scroll-up:hover { background: var(--dsw-alias-interactive-bg-hover-solid); }
       .dk-scroll-up svg { flex: none; }
-      /* 悬浮窗：浅色底稍浅、暗蓝字；深色深底白字 */
+      /* 鎮诞绐楋細娴呰壊娴呭簳鏆楄摑瀛楋紱娣辫壊娣卞簳鐧藉瓧 */
       .dk-question-float {
         position: fixed;
         z-index: 9997;
@@ -115,6 +113,7 @@ return {
     const registry = {
       messages: [],
       anchors: new Map(),
+      running: false,
     }
 
     const extractText = (content) => {
@@ -139,6 +138,7 @@ return {
         }
         msgs.sort((a, b) => a.seq - b.seq)
         registry.messages = msgs
+        registry.running = !!snapshot.running
       }
       return React.createElement('span', {
         ref: (el) => {
@@ -156,8 +156,8 @@ return {
       for (const m of messages) {
         if (m.kind === 'user') {
           if (cur) groups.push(cur)
-          const raw = m.text || '（提问）'
-          const brief = raw.length > 20 ? raw.slice(0, 20) + '…' : raw
+          const raw = m.text || '锛堟彁闂級'
+          const brief = raw.length > 20 ? raw.slice(0, 20) + '鈥? : raw
           cur = { startSeq: m.seq, endSeq: m.seq, text: brief, fullText: raw }
         } else if (cur) {
           cur.endSeq = m.seq
@@ -212,7 +212,7 @@ return {
         try {
           const target = row.offsetTop
           nav.scrollTop = Math.max(0, Math.min(target, nav.scrollHeight - nav.clientHeight))
-        } catch (e) { /* 忽略 */ }
+        } catch (e) { /* 蹇界暐 */ }
       }
 
       const snapToRow = () => {
@@ -232,7 +232,7 @@ return {
             const target = nearest.offsetTop
             nav.scrollTop = Math.max(0, Math.min(target, nav.scrollHeight - nav.clientHeight))
           }
-        } catch (e) { /* 忽略 */ }
+        } catch (e) { /* 蹇界暐 */ }
       }
 
       const refreshFades = () => {
@@ -242,7 +242,7 @@ return {
             const overflow = el.scrollWidth > el.clientWidth + 1
             if (overflow) el.classList.add('dk-fade')
             else el.classList.remove('dk-fade')
-          } catch (e) { /* 忽略 */ }
+          } catch (e) { /* 蹇界暐 */ }
         }
       }
 
@@ -250,7 +250,7 @@ return {
         try {
           const qf = qFloatEl.current
           const btn = upBtnEl.current
-          const target = document.querySelector('[aria-label="回到底部"]')
+          const target = document.querySelector('[aria-label="鍥炲埌搴曢儴"]')
           const vw = window.innerWidth || document.documentElement.clientWidth
           const vh = window.innerHeight || document.documentElement.clientHeight
           if (!target) return
@@ -270,7 +270,7 @@ return {
               qf.style.top = hb + 'px'
             }
           }
-        } catch (e) { /* 忽略 */ }
+        } catch (e) { /* 蹇界暐 */ }
       }
 
       React.useEffect(() => {
@@ -283,6 +283,16 @@ return {
         const groups = groupsRef.current
         if (!groups.length) { setQuestion(null); return }
         const lastGroup = groups[groups.length - 1]
+
+        // AI 鍥炵瓟涓細绔嬪嵆鏄剧ず鏈€鍚庝竴涓棶棰?        if (registry.running) {
+          if (questionRef.current !== lastGroup.startSeq) {
+            questionRef.current = lastGroup.startSeq
+            setQuestion(lastGroup.fullText || lastGroup.text)
+          }
+          return
+        }
+
+        // 闈炲洖绛斾腑锛氭寜"闂婊氬嚭瑙嗗彛"鏄剧ず
         let prevSeq = -Infinity
         let prevEl = null
         for (const [seq, el] of registry.anchors) {
@@ -324,7 +334,7 @@ return {
           let best = Infinity
           for (const [seq, el] of registry.anchors) {
             let top = Infinity
-            try { top = el.getBoundingClientRect().top } catch (e) { /* 忽略 */ }
+            try { top = el.getBoundingClientRect().top } catch (e) { /* 蹇界暐 */ }
             if (top >= 0 && top < best) {
               best = top
               activeSeq = seq
@@ -364,7 +374,7 @@ return {
       let best = Infinity
       for (const [seq, el] of registry.anchors) {
         let top = Infinity
-        try { top = el.getBoundingClientRect().top } catch (e) { /* 忽略 */ }
+        try { top = el.getBoundingClientRect().top } catch (e) { /* 蹇界暐 */ }
         if (top >= 0 && top < best) {
           best = top
           activeSeq = seq
@@ -395,12 +405,12 @@ return {
           }
         }
         if (target) {
-          try { target.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch (e) { /* 忽略 */ }
+          try { target.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch (e) { /* 蹇界暐 */ }
         } else {
           const first = registry.anchors.size ? Math.min(...registry.anchors.keys()) : null
           if (first !== null) {
             const el = registry.anchors.get(first)
-            try { el.scrollIntoView({ behavior: 'smooth', block: 'end' }) } catch (e) { /* 忽略 */ }
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'end' }) } catch (e) { /* 蹇界暐 */ }
           }
         }
       }
@@ -453,7 +463,7 @@ return {
           type: 'button',
           ref: upBtnEl,
           className: 'dk-scroll-up',
-          title: '向上翻一组',
+          title: '鍚戜笂缈讳竴缁?,
           onClick: scrollUpOne,
         }, upIcon)
       )
