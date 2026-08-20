@@ -1,16 +1,12 @@
-// DK 鲸鱼宠物 —— DeepSeek Harness 动态插件（浏览器半）
-// 座头鲸妈妈 + 宝宝，全界面慢速漫游、可拖拽、点击对话
-// 用法：在 Harness 中用 cordis_define 的 code.client 加载本函数体，然后 cordis_run
+// DK 椴搁奔瀹犵墿 鈥斺€?DeepSeek Harness 鍔ㄦ€佹彃浠讹紙娴忚鍣ㄥ崐锛?// 搴уご椴稿濡?+ 瀹濆疂锛屽叏鐣岄潰鎱㈤€熸极娓搞€佸彲鎷栨嫿銆佺偣鍑诲璇?// 鐢ㄦ硶锛氬湪 Harness 涓敤 cordis_define 鐨?code.client 鍔犺浇鏈嚱鏁颁綋锛岀劧鍚?cordis_run
 
 return {
   inject: ['timer'],
   apply(ctx) {
-    // 取 slots 服务（界面席位注册表）；不存在就静默退出
-    const slots = ctx.get('slots')
+    // 鍙?slots 鏈嶅姟锛堢晫闈㈠腑浣嶆敞鍐岃〃锛夛紱涓嶅瓨鍦ㄥ氨闈欓粯閫€鍑?    const slots = ctx.get('slots')
     if (slots === undefined) return
 
-    // 动画样式（随插件停止自动清理）
-    styles.insert(`
+    // 鍔ㄧ敾鏍峰紡锛堥殢鎻掍欢鍋滄鑷姩娓呯悊锛?    styles.insert(`
       .dk-whale-float {
         position: fixed;
         left: 60%; top: 40%;
@@ -33,7 +29,7 @@ return {
       .dk-whale-flip { display: block; }
       .dk-whale-flip svg { width: 180px; height: auto; display: block; }
       .dk-whale-btn.baby .dk-whale-flip svg { width: 90px; }
-      /* 尾鳍/背鳍/胸鳍摇动 */
+      /* 灏鹃硩/鑳岄硩/鑳搁硩鎽囧姩 */
       .dk-whale-tail {
         transform-box: fill-box;
         transform-origin: 0% 48%;
@@ -80,11 +76,10 @@ return {
       }
     `)
 
-    const momPhrases = ['咕噜～', 'DK 在呢！', '加油哦！', '有事找我呀？']
-    const babyPhrases = ['咕噜咕噜～', '妈妈妈妈！', '我要游游！', '嘿嘿～']
+    const momPhrases = ['鍜曞櫆锝?, 'DK 鍦ㄥ憿锛?, '鍔犳补鍝︼紒', '鏈変簨鎵炬垜鍛€锛?]
+    const babyPhrases = ['鍜曞櫆鍜曞櫆锝?, '濡堝濡堝锛?, '鎴戣娓告父锛?, '鍢垮樋锝?]
 
-    // 座头鲸 SVG：无腹褶线条，其余特征保留
-    const buildWhale = () => React.createElement('svg',
+    // 搴уご椴?SVG锛氭棤鑵硅ざ绾挎潯锛屽叾浣欑壒寰佷繚鐣?    const buildWhale = () => React.createElement('svg',
       { viewBox: '0 0 360 170', xmlns: 'http://www.w3.org/2000/svg' },
       React.createElement('defs', null,
         React.createElement('linearGradient', { id: 'dkbG', x1: '0', y1: '0', x2: '0', y2: '1' },
@@ -112,7 +107,7 @@ return {
       React.createElement('path', { d: 'M24 98 Q36 104 58 105', stroke: '#1c2c4e', 'stroke-width': '1.2', fill: 'none', 'stroke-linecap': 'round' })
     )
 
-    // 鲸鱼一家组件：妈妈慢速漫游+可拖拽，宝宝同步紧跟
+    // 椴搁奔涓€瀹剁粍浠讹細濡堝鎱㈤€熸极娓?鍙嫋鎷斤紝瀹濆疂鍚屾绱ц窡
     function WhaleFamily() {
       const [pos, setPos] = React.useState({ x: 60, y: 40 })
       const [dir, setDir] = React.useState(1)
@@ -131,8 +126,7 @@ return {
       const suppressClickRef = React.useRef(false)
       const layerRef = React.useRef(null)
 
-      // 慢悠悠漂移：每 16 秒在附近挪一小段，游 13 秒
-      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+      // 鎱㈡偁鎮犳紓绉伙細姣?16 绉掑湪闄勮繎鎸竴灏忔锛屾父 13 绉?      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
       React.useEffect(() => {
         const dispose = ctx.interval(() => {
           if (hoverRef.current || tipShownRef.current || draggingRef.current) return
@@ -146,7 +140,7 @@ return {
         return dispose
       }, [])
 
-      // 卸载时清理未消失的气泡定时器
+      // 鍗歌浇鏃舵竻鐞嗘湭娑堝け鐨勬皵娉″畾鏃跺櫒
       React.useEffect(() => () => {
         if (hideMomTipRef.current) hideMomTipRef.current()
         if (hideBabyTipRef.current) hideBabyTipRef.current()
@@ -210,12 +204,11 @@ return {
         showTip(false)
       }
 
-      // 宝宝跟在妈妈身后
+      // 瀹濆疂璺熷湪濡堝韬悗
       const babyX = pos.x - dir * 14
       const babyY = pos.y + 4
 
-      // 妈妈和宝宝同速同步滑动
-      const glide = 'left 13s cubic-bezier(.45,.05,.35,1), top 13s cubic-bezier(.45,.05,.35,1)'
+      // 濡堝鍜屽疂瀹濆悓閫熷悓姝ユ粦鍔?      const glide = 'left 13s cubic-bezier(.45,.05,.35,1), top 13s cubic-bezier(.45,.05,.35,1)'
       const momTransition = dragging ? 'none' : glide
       const babyTransition = dragging
         ? 'left .5s ease-in-out, top .5s ease-in-out'
@@ -225,8 +218,7 @@ return {
       const babyTipEl = babyTip === null ? null : React.createElement('span', { className: 'dk-whale-tip show' }, babyTip)
 
       return React.createElement(React.Fragment, null,
-        // 拖拽用全屏透明层
-        React.createElement('div', {
+        // 鎷栨嫿鐢ㄥ叏灞忛€忔槑灞?        React.createElement('div', {
           ref: layerRef,
           className: 'dk-whale-drag-layer',
           style: { pointerEvents: dragging ? 'auto' : 'none' },
@@ -234,7 +226,7 @@ return {
           onMouseUp: onLayerMouseUp,
           onMouseLeave: onLayerMouseUp,
         }),
-        // 鲸鱼妈妈
+        // 椴搁奔濡堝
         React.createElement('div', {
           className: 'dk-whale-float',
           style: { left: pos.x + '%', top: pos.y + '%', transition: momTransition },
@@ -242,7 +234,7 @@ return {
           momTipEl,
           React.createElement('button', {
             className: 'dk-whale-btn',
-            title: 'DK 鲸鱼妈妈',
+            title: 'DK 椴搁奔濡堝',
             onMouseDown: onMomMouseDown,
             onMouseEnter: () => { hoverRef.current = true },
             onMouseLeave: () => { hoverRef.current = false },
@@ -251,7 +243,7 @@ return {
             React.createElement('span', { className: 'dk-whale-flip', style: { transform: 'scaleX(' + dir + ')' } }, buildWhale())
           )
         ),
-        // 鲸鱼宝宝
+        // 椴搁奔瀹濆疂
         React.createElement('div', {
           className: 'dk-whale-float',
           style: { left: babyX + '%', top: babyY + '%', transition: babyTransition },
@@ -259,7 +251,7 @@ return {
           babyTipEl,
           React.createElement('button', {
             className: 'dk-whale-btn baby',
-            title: 'DK 小鲸鱼',
+            title: 'DK 灏忛哺楸?,
             onMouseEnter: () => { hoverRef.current = true },
             onMouseLeave: () => { hoverRef.current = false },
             onClick: () => showTip(true),
@@ -270,8 +262,7 @@ return {
       )
     }
 
-    // 注册到全屏浮层（整个 UI 之上）
-    slots.inject('shell.overlay', () => slots.register(
+    // 娉ㄥ唽鍒板叏灞忔诞灞傦紙鏁翠釜 UI 涔嬩笂锛?    slots.inject('shell.overlay', () => slots.register(
       {
         name: 'shell.overlay',
         id: 'dk-whale-pet',
