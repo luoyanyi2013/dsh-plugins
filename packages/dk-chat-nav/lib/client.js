@@ -391,25 +391,35 @@ nav[class*="eGxaPq_"] { display: none !important; }
 			const alignFloats = () => {
 				try {
 					const qf = qFloatEl.current;
-					const target = document.querySelector('[aria-label="回到底部"]');
-					const vw = window.innerWidth || document.documentElement.clientWidth;
-					const vh = window.innerHeight || document.documentElement.clientHeight;
-					if (!target) {
-						// 找不到"回到底部"按钮时用 CSS 默认定位；qf 保持隐藏
-						return;
-					}
-					const r = target.getBoundingClientRect();
-					if (qf) {
-						const center = r.right - 374;
-						qf.style.left = center + 'px';
-						qf.style.transform = 'translateX(-50%)';
-						qf.style.opacity = '1';
-						const header = document.querySelector('.wSkVaW_header');
-						if (header) {
-							const hb = header.getBoundingClientRect().bottom;
-							qf.style.top = hb + 'px';
+					if (!qf) return;
+					// 宽度对齐输入框卡片（data-composer-card），并左右各宽出一点
+					const card = document.querySelector('[data-composer-card]');
+					let placed = false;
+					if (card) {
+						const cr = card.getBoundingClientRect();
+						if (cr.width > 0) {
+							qf.style.width = (cr.width + 32) + 'px';
+							qf.style.left = (cr.left + cr.width / 2) + 'px';
+							qf.style.transform = 'translateX(-50%)';
+							placed = true;
 						}
 					}
+					if (!placed) {
+						// 兜底：找不到输入框时，仍按"回到底部"按钮推算中心（CSS 里的 858px 宽度生效）
+						const target = document.querySelector('[aria-label="回到底部"]');
+						if (target) {
+							const r = target.getBoundingClientRect();
+							qf.style.left = (r.right - 374) + 'px';
+							qf.style.transform = 'translateX(-50%)';
+							placed = true;
+						}
+					}
+					if (!placed) return;
+					const header = document.querySelector('.wSkVaW_header');
+					if (header) {
+						qf.style.top = header.getBoundingClientRect().bottom + 'px';
+					}
+					qf.style.opacity = '1';
 				} catch (e) { /* 忽略 */ }
 			};
 
