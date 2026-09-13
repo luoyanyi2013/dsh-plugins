@@ -78,12 +78,16 @@ window.__ModuleLoader__.load({
 }
 `;
 		const CSS_TAG = "dk-whale-pet/styles.css";
-		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(CSS_TAG) + "]") === null) {
-			const tag = document.createElement("style");
-			tag.dataset.plugin = "dk-whale-pet";
-			tag.dataset.pluginCss = CSS_TAG;
+		if (typeof document !== "undefined") {
+			// 始终复用同一个 style 标签并刷新内容：热更新后新样式能立刻生效
+			let tag = document.querySelector("style[data-plugin-css=" + JSON.stringify(CSS_TAG) + "]");
+			if (tag === null) {
+				tag = document.createElement("style");
+				tag.dataset.plugin = "dk-whale-pet";
+				tag.dataset.pluginCss = CSS_TAG;
+				document.head.appendChild(tag);
+			}
 			tag.textContent = CSS_TEXT;
-			document.head.appendChild(tag);
 		}
 
 		// ── plugin body ─────────────────────────────────────────────────────────
