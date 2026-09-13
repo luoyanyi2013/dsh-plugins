@@ -1,0 +1,26 @@
+{
+  "name": "dk-chat-nav",
+  "version": "1.0.0",
+  "description": "DK 对话导航 —— DeepSeek Harness 浏览器端装饰插件（右侧滚轮导航 + 向上翻一组按钮 + 顶部问题悬浮窗）",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-runtime"
+      ]
+    }
+  },
+  "license": "MIT"
+}
