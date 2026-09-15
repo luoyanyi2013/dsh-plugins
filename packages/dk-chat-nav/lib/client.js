@@ -429,46 +429,45 @@ nav[class*="eGxaPq_"] { display: none !important; }
 				}
 			}, [question]);
 
+			// 悬浮窗跟着滚动走：显示"当前正在看的那一组"的提问
+			// （与滚轮高亮同一套判断；该组提问还在屏幕上就不显示，免得遮挡）
 			const refreshQuestion = () => {
 				const groups = groupsRef.current;
 				if (!groups.length) { setQuestion(null); return; }
-				const lastGroup = groups[groups.length - 1];
 
-				if (registry.running) {
-					if (questionRef.current !== lastGroup.startSeq) {
-						questionRef.current = lastGroup.startSeq;
-						setQuestion(lastGroup.fullText || lastGroup.text);
-					}
-					return;
-				}
-
-				let prevSeq = -Infinity;
-				let prevEl = null;
+				// 1) 视口里最靠上的锚点 → 它落在哪一组
+				let activeSeq = null;
+				let best = Infinity;
 				for (const [seq, el] of registry.anchors) {
-					if (seq < lastGroup.startSeq && seq > prevSeq) {
-						prevSeq = seq;
-						prevEl = el;
-					}
+					let top = Infinity;
+					try { top = el.getBoundingClientRect().top; } catch (e) { /* 忽略 */ }
+					if (top >= 0 && top < best) { best = top; activeSeq = seq; }
 				}
-				if (prevEl) {
-					let prevTop;
-					try { prevTop = prevEl.getBoundingClientRect().top; } catch (e) { prevTop = 0; }
-					if (prevTop < 0) {
-						if (questionRef.current !== lastGroup.startSeq) {
-							questionRef.current = lastGroup.startSeq;
-							setQuestion(lastGroup.fullText || lastGroup.text);
-						}
-					} else {
-						if (questionRef.current !== null) {
-							questionRef.current = null;
-							setQuestion(null);
-						}
-					}
-				} else {
+				let idx = -1;
+				for (let i = 0; i < groups.length; i++) {
+					const g = groups[i];
+					if (activeSeq !== null && activeSeq >= g.startSeq && activeSeq <= g.endSeq) { idx = i; break; }
+				}
+				if (idx < 0) idx = groups.length - 1;
+				const g = groups[idx];
+
+				// 2) 这一组的提问还在屏幕上 → 藏着；滚出上方才浮出来
+				let visible = false;
+				try {
+					const users = document.querySelectorAll('[data-chat-flow-kind="user"]');
+					const uEl = users[idx];
+					if (uEl) visible = uEl.getBoundingClientRect().top >= 0;
+				} catch (e) { visible = false; }
+				if (visible) {
 					if (questionRef.current !== null) {
 						questionRef.current = null;
 						setQuestion(null);
 					}
+					return;
+				}
+				if (questionRef.current !== g.startSeq) {
+					questionRef.current = g.startSeq;
+					setQuestion(g.fullText || g.text);
 				}
 			};
 
