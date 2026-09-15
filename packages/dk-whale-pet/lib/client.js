@@ -213,34 +213,37 @@ window.__ModuleLoader__.load({
 			const layerRef = React.useRef(null);
 
 			const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-			// 游走：主要在屏幕外侧（左右边缘）游，偶尔进中央对话区
+			// 游走：约 80% 时间贴在左右两侧（对话区外），偶尔才进中间晃一下
+			// 关键点：认准一侧游，不直接横穿；换边只在"回到两侧"时发生
 			const edgeRef = React.useRef(true);
+			const sideRef = React.useRef(Math.random() < 0.5 ? 'L' : 'R');
 			React.useEffect(() => {
 				const dispose = ctx.interval(() => {
 					if (hoverRef.current || tipShownRef.current || draggingRef.current) return;
 					const cur = posRef.current;
 					let nx;
 					let ny;
-					// 80% 概率保持/回到外侧边缘；20% 概率进入中央对话区
 					const roll = Math.random();
 					if (edgeRef.current) {
-						if (roll < 0.85) {
-							// 继续在外侧：贴左或贴右边缘
-							const side = Math.random() < 0.5 ? 'L' : 'R';
-							nx = side === 'L' ? clamp(cur.x + (Math.random() - 0.5) * 18, 4, 18) : clamp(cur.x + (Math.random() - 0.5) * 18, 82, 96);
+						if (roll < 0.82) {
+							// 留在本侧边缘小幅漂移（不换边，避免横穿对话区）
+							nx = sideRef.current === 'L'
+								? clamp(cur.x + (Math.random() - 0.5) * 14, 3, 16)
+								: clamp(cur.x + (Math.random() - 0.5) * 14, 84, 97);
 						} else {
 							// 偶尔进对话区
 							edgeRef.current = false;
-							nx = clamp(cur.x + (Math.random() - 0.5) * 30, 25, 75);
+							nx = 30 + Math.random() * 40;
 						}
 					} else {
-						if (roll < 0.7) {
+						if (roll < 0.15) {
 							// 在对话区短暂逗留
-							nx = clamp(cur.x + (Math.random() - 0.5) * 26, 25, 75);
+							nx = clamp(cur.x + (Math.random() - 0.5) * 22, 26, 74);
 						} else {
-							// 回外侧边缘
+							// 尽快回到两侧（回去时可能换到对面那侧）
 							edgeRef.current = true;
-							nx = Math.random() < 0.5 ? clamp(cur.x - 20, 4, 18) : clamp(cur.x + 20, 82, 96);
+							if (Math.random() < 0.45) sideRef.current = sideRef.current === 'L' ? 'R' : 'L';
+							nx = sideRef.current === 'L' ? 3 + Math.random() * 13 : 84 + Math.random() * 13;
 						}
 					}
 					// 纵向整体靠上或靠下，避开中央太多
